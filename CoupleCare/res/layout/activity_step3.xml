@@ -2,15 +2,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/back1"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="130dp"
-        android:gravity="center"
-        android:text="para usar la version de la mujer"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
 
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/imageView1"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="118dp"
+            android:text="HOW IT WORKS?"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#269BBF"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/couple" />
+
+        <TextView
+            android:id="@+id/msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/fecha"
+            android:layout_centerHorizontal="true"
+            android:text="We hope you enjoy it!"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#EB0088"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignRight="@+id/textView1"
+            android:layout_marginBottom="18dp"
+            android:src="@drawable/cal" />
+
+        <TextView
+            android:id="@+id/fecha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/textView1"
+            android:layout_marginTop="18dp"
+            android:gravity="fill"
+            android:paddingLeft="20px"
+            android:paddingRight="20px"
+            android:text="With two apps, Couple Care and Couple Care Men synchronized to make it work."
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#269BBF"
+            android:textSize="25sp"
+            android:textStyle="normal" />
+        
+    </RelativeLayout>
+    
 </LinearLayout>

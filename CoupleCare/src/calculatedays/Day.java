@@ -100,7 +100,7 @@ public class Day implements Serializable {
 		// Sumarle el freqPeriod/2
 		// tempCal.add(Calendar.DAY_OF_MONTH, freqDayNumber / 2);
 		int i = periodays;
-		for (; i <= ((_freqDayNumber / 2) - 2) - 3; i++) {  //aqui el menos 2
+		for (; i <= ((_freqDayNumber / 2) - 3) - 3; i++) {  //aqui el menos 2*
 			tempCal.add(Calendar.DAY_OF_MONTH, 1);
 			simpleDatesList.add(new SimpleDate(tempCal
 					.get(Calendar.DAY_OF_MONTH), tempCal.get(Calendar.MONTH),
@@ -121,7 +121,8 @@ public class Day implements Serializable {
 		simpleDatesList.add(new SimpleDate(tempCal.get(Calendar.DAY_OF_MONTH),
 				tempCal.get(Calendar.MONTH), tempCal.get(Calendar.YEAR),
 				DayType.FERTILE));
-		for (int j = 0; j < (_freqDayNumber / 2) - 2; j++) {
+		
+		for (int j = 0; j < (_freqDayNumber / 2) - 2; j++) { //Estaba un -2 
 			tempCal.add(Calendar.DAY_OF_MONTH, 1);
 			simpleDatesList.add(new SimpleDate(tempCal
 					.get(Calendar.DAY_OF_MONTH), tempCal.get(Calendar.MONTH),

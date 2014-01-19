@@ -28,15 +28,17 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/textView1"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_marginTop="19dp"
-            android:text="CoupleCare is an app where she can keep track of her menstrual cycle and share it with him."
+            android:gravity="center"
+            android:paddingLeft="20px"
+            android:paddingRight="20px"
+            android:text="CoupleCare is an app where you can keep track of your menstrual cycle and share it with him."
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="#269BBF"
             android:textSize="25sp"
-            android:gravity="fill"
-            android:textStyle="normal"
-            android:paddingLeft="20px"
-            android:paddingRight="20px" />
+            android:textStyle="normal" />
 
         <ImageView
             android:id="@+id/imageView2"
@@ -54,7 +56,6 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:src="@drawable/couple" />
-        
     </RelativeLayout>
     
 </LinearLayout>

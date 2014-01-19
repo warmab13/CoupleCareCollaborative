@@ -1,15 +1,20 @@
 package activities.couple;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import sharedpreferences.ManageSharedPreferences;
 import AlertDialogManager.AlertDialogManager;
 import SessionManager.SessionManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.view.PagerAdapter;
@@ -21,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class GuideBegin extends Activity {
@@ -37,6 +43,8 @@ public class GuideBegin extends Activity {
 	SharedPreferences prefwoman;
 	SharedPreferences preflogin;
 	
+	public final static String EXTRA_MESSAGE = "";
+	
 	String emaildw;
 	String passdw;
 	String putemail = "";
@@ -51,10 +59,29 @@ public class GuideBegin extends Activity {
 		setContentView(R.layout.activity_signupdate);
 
 		vp = (ViewPager) findViewById(R.id.viewpager);
+		
+		if(isOnline() == false){
+			Intent i = new Intent(this, NoConnection.class);
+			// Closing all the Activities
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			// Add new Flag to start new Activity
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	    startActivity(i);
+    	    finish();
+		}
 
 		myAdapter = new vpAdapter();
 		vp.setAdapter(myAdapter);
 
+	}
+	
+	//SDK de Facebook 
+	@Override
+	protected void onPostResume() {
+		// TODO Auto-generated method stub
+		super.onPostResume();
+		com.facebook.Settings.publishInstallAsync(getApplicationContext(),
+				"230341937134870");
 	}
 
 	private class vpAdapter extends PagerAdapter {
@@ -103,6 +130,7 @@ public class GuideBegin extends Activity {
 				final EditText email;
 				final EditText pass;
 				
+				
 				email = (EditText) v.findViewById(R.id.etemail);
 				pass = (EditText) v.findViewById(R.id.etpass);
 
@@ -130,7 +158,19 @@ public class GuideBegin extends Activity {
 								DrawerNavSignDate.class); // Agregar actividad
 															// siguiente
 						startActivity(i);
+						finish();
 
+					}
+				});
+				
+				TextView forgetpass = (TextView) v.findViewById(R.id.forgotpass);
+				
+				forgetpass.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						showDialogPass(R.layout.prompfpass);
+						
 					}
 				});
 				
@@ -191,6 +231,8 @@ public class GuideBegin extends Activity {
 				// Delete backStack
 				session = new SessionManager(getApplicationContext());
 				session.createLoginSession(email, id);
+				String message = "guia";
+				i.putExtra(EXTRA_MESSAGE, message);
 				startActivity(i);
 				finish();
 			}
@@ -211,5 +253,99 @@ public class GuideBegin extends Activity {
 		passlog = preflogin.getString("pass", "");
 
 	}
+	
+	@Override
+	  public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this); // Add this method.
+	    
+	  }
+
+	  @Override
+	  public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this); // Add this method.
+	  }
+
+	//Función booleana para detectar el estado de la conexión del dispositivo.
+	    public boolean isOnline() {
+	    	ConnectivityManager cm =
+	    			(ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    	
+	    	//Recibir información de la red conectada.
+	        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+	        if (netInfo != null && netInfo.isConnected()) {
+	            return true;
+	        }
+	        return false;
+	    }
+	    
+	    
+	    public void showDialogPass(int la) {
+			LayoutInflater li = LayoutInflater.from(GuideBegin.this);
+			final View promptsView = li.inflate(la, null);
+
+			AlertDialog.Builder alerDialogBuilder = new AlertDialog.Builder(
+					GuideBegin.this);
+
+			alerDialogBuilder.setView(promptsView);
+
+			final EditText useremail = (EditText) promptsView
+					.findViewById(R.id.editTextDialogUserInput);
+
+			alerDialogBuilder
+					.setCancelable(false)
+					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int idw) {
+							
+							
+							String email = useremail.getText().toString();
+
+							client.get(
+									"http://couplecare.us/backendcouple/sendpasswomen.php?Email="+email,
+									new AsyncHttpResponseHandler() {
+
+										// En caso de que haya una respuesta
+										@Override
+										public void onSuccess(String response) {
+											response = response.replace(" ", "");
+											if (!response.equals("0")
+													&& !response.equals("")
+													&& !response.equals(null)) {
+												alert.showAlertDialog(
+														GuideBegin.this,
+														"Check Password.",
+														"An email has been send to your mailbox. Could be on SPAM or Promotions.",
+														true);
+									
+											} else {
+												alert.showAlertDialog(
+														GuideBegin.this,
+														"Fail check password",
+														"This user is not registered.",
+														false);
+											}
+										}
+									});
+
+						}
+					}).setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog, int id) {
+									dialog.cancel();
+
+								}
+							});
+
+			AlertDialog alertDialog = alerDialogBuilder.create();
+
+			alertDialog.show();
+
+		}
+
 
 }

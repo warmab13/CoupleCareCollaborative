@@ -6,35 +6,33 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".NoConnection" >
+    tools:context=".NoConnection" 
+    android:background="@drawable/back2">
 
-    <ImageView
-        android:id="@+id/imageView1"
+    <Button
+        android:id="@+id/btncname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
-        android:src="@drawable/ic_launcher" />
+        android:layout_marginBottom="150dp"
+        android:background="@drawable/cyan"
+        android:onClick="retryConnection"
+        android:text="Retry"
+        android:textColor="@color/white" />
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView1"
+        android:layout_above="@+id/btncname"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="23dp"
-        android:text="You don&apos;t have Internet Connection"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <Button
-        android:id="@+id/retry"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/textView1"
-        android:onClick="retryConnection"
-        android:text="Retry" />
+        android:layout_marginBottom="36dp"
+        android:gravity="center"
+        android:text="Sorry :( you need Internet Connection."
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#01A9DB"
+        android:textSize="30sp"
+        android:textStyle="bold" />
 
 </RelativeLayout>

@@ -30,18 +30,6 @@
             android:layout_alignParentTop="true"
             android:src="@drawable/couple" />
 
-        <TextView
-            android:id="@+id/msg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/fecha"
-            android:layout_centerHorizontal="true"
-            android:text="We hope you enjoy it!"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="#EB0088"
-            android:textSize="25sp"
-            android:textStyle="bold" />
-
         <ImageView
             android:id="@+id/imageView2"
             android:layout_width="wrap_content"
@@ -51,21 +39,48 @@
             android:layout_marginBottom="18dp"
             android:src="@drawable/cal" />
 
-        <TextView
-            android:id="@+id/fecha"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/textView1"
-            android:layout_marginTop="18dp"
-            android:gravity="fill"
-            android:paddingLeft="20px"
-            android:paddingRight="20px"
-            android:text="With two apps, Couple Care and Couple Care Men synchronized to make it work."
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#269BBF"
-            android:textSize="25sp"
-            android:textStyle="normal" />
+          <TextView
+              android:id="@+id/msg"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_below="@+id/fecha"
+              android:layout_centerHorizontal="true"
+              android:layout_marginTop="10dp"
+              android:gravity="center"
+              android:text="We hope you enjoy it!"
+              android:textAppearance="?android:attr/textAppearanceLarge"
+              android:textColor="#EB0088"
+              android:textSize="20sp"
+              android:textStyle="bold" />
+
+          <TextView
+              android:id="@+id/msg"
+              android:layout_width="wrap_content"
+              android:layout_height="50dp"
+              android:layout_above="@+id/imageView2"
+              android:layout_below="@+id/m"
+              android:layout_centerHorizontal="true"
+              android:layout_marginBottom="30dp"
+              android:gravity="center"
+              android:text="(Couplepin is in the options menu)"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:textColor="@color/lightblue"
+              android:textSize="15sp"
+              android:textStyle="bold" />
+
+          <TextView
+              android:id="@+id/fecha"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignRight="@+id/textView1"
+              android:layout_below="@+id/textView1"
+              android:gravity="center"
+              android:paddingLeft="20px"
+              android:paddingRight="20px"
+              android:text="With two apps, CoupleCare and CoupleCare Men synchronised with a CouplePin to make it work."
+              android:textAppearance="?android:attr/textAppearanceLarge"
+              android:textColor="#269BBF"
+              android:textStyle="normal" />
         
     </RelativeLayout>
     

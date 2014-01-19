@@ -3,6 +3,7 @@ package SessionManager;
 import java.util.HashMap;
 
 import activities.couple.DrawerHomeCal;
+import activities.couple.DrawerNavSignDate;
 import activities.couple.GuideBegin;
 import android.content.Context;
 import android.content.Intent;
@@ -65,19 +66,24 @@ public class SessionManager {
 		 * If false it will redirect user to login page
 		 * Else won't do anything
 		 * */
+		
 		public void checkLogin(){
 			// Check login status
 			if(!this.isLoggedIn()){
 				// user is not logged in redirect him to Login Activity
 				Intent i = new Intent(_context, GuideBegin.class);
 				// Closing all the Activities
+
 				i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				
 				
 				// Add new Flag to start new Activity
 				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				
 				// Staring Login Activity
 				_context.startActivity(i);
+				
+				
 			}
 		}
 		
@@ -107,15 +113,16 @@ public class SessionManager {
 			editor.commit();
 			
 			// After logout redirect user to Loing Activity
-			Intent i = new Intent(_context, GuideBegin.class);
+			//Intent i = new Intent(_context, GuideBegin.class);
+			
 			// Closing all the Activities
-			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			//i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			
 			// Add new Flag to start new Activity
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			//i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			
 			// Staring Login Activity
-			_context.startActivity(i);
+			//_context.startActivity(i);
 		}
 		
 		/**

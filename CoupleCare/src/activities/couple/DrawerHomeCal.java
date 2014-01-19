@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
+import org.apache.http.protocol.HTTP;
+
 import listcalendar.ListEntrance;
 import listcalendar.List_Adapter;
 
@@ -16,25 +18,40 @@ import calculatedays.ColorEnum;
 import calculatedays.Day;
 import calculatedays.SimpleDate;
 
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.Fields;
+import com.google.analytics.tracking.android.GoogleAnalytics;
+import com.google.analytics.tracking.android.MapBuilder;
+import com.google.analytics.tracking.android.Tracker;
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import AlertDialogManager.AlertDialogManager;
+import Gson.Men;
 import Gson.Period;
 import Gson.Women;
 import SessionManager.SessionManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
+import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +59,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -60,6 +79,11 @@ public class DrawerHomeCal extends ActionBarActivity{
 	AsyncHttpClient client = new AsyncHttpClient();
 	Gson g = new Gson();
 	Gson gwomen = new Gson();
+	Gson gmen = new Gson();
+	
+	ImageView guia;
+	
+	public String status="";
 	
 	SessionManager session;
 	
@@ -73,7 +97,7 @@ public class DrawerHomeCal extends ActionBarActivity{
     private ListView drawerList;
     private ActionBarDrawerToggle drawerToggle;
     
-    public final static String EXTRA_MESSAGE = "";
+    
     
     private CharSequence tituloSeccion;  
     private CharSequence tituloApp;
@@ -82,6 +106,7 @@ public class DrawerHomeCal extends ActionBarActivity{
 	private vpAdapter myAdapter;
 	
 	String id="";
+	String idmen="";
 	String CouplePin = "";
 	String UserName = "";
 	
@@ -90,6 +115,7 @@ public class DrawerHomeCal extends ActionBarActivity{
 	
 	SimpleDateFormat formatoDelTexto = new SimpleDateFormat("yyyy/MM/dd");
     Date CPeriodStart = null;
+    Date CPeriodStart2 = null;
     Date CPeriodEnd = null;
     Date CFertileStart1 = null;
     Date CFertileEnd1 = null;
@@ -101,12 +127,44 @@ public class DrawerHomeCal extends ActionBarActivity{
     
     Date fechasumar = null;
 
+    String openguide = "";
+    
+    ShareActionProvider myShareActionProvider;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_homecal);
-
+		
 		session = new SessionManager(getApplicationContext());
+		
+		if(isOnline() == false){
+			Intent i = new Intent(this, NoConnection.class);
+			// Closing all the Activities
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			// Add new Flag to start new Activity
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	    startActivity(i);
+    	    finish();
+		}
+		
+		guia = (ImageView)findViewById(R.id.guia);
+		
+		Intent intent = getIntent();
+	    openguide = intent.getStringExtra(GuideBegin.EXTRA_MESSAGE);
+	    
+	    if(intent != null){
+	    	if(openguide != null){
+	    		if(openguide.equals("guia"));
+	    		guia.setVisibility(View.VISIBLE);
+	    	}
+	    }
+		
+		GuideBegin login = new GuideBegin();
+		login.finish();
+		
+		DrawerNavSignDate signup = new DrawerNavSignDate();
+		signup.finish();
 		
 		if(session.isLoggedIn()){
         	
@@ -120,6 +178,9 @@ public class DrawerHomeCal extends ActionBarActivity{
             // email
             String email = user.get(SessionManager.KEY_EMAIL);
             
+            opcionesMenu = new String[] {"Home", "Settings", "Your Couple Pin", "Log out", "Status: "+status};
+            
+            
             
           //Se asigna la URL del JSON alojado en Internet
 			client.get("http://couplecare.us/backendcouple/JSON/women/"+id+".json", new AsyncHttpResponseHandler() {
@@ -131,21 +192,62 @@ public class DrawerHomeCal extends ActionBarActivity{
 	    	        Women jsonWomen = gwomen.fromJson(response, Women.class); 
 	    	        CouplePin = jsonWomen.CouplePin.toString();
 	    	        UserName = jsonWomen.Name.toString();
+	    	        
+	    	        client.get("http://couplecare.us/backendcouple/searchmenbypin.php?pin="+CouplePin, new AsyncHttpResponseHandler() {
+	    	    	    //En caso de que haya una respuesta
+	    				@Override
+	    	    	    public void onSuccess(String response) {
+	    					
+	    					response = response.replace(" ", "");
+	    					idmen = response;
+	    					if(isSynchronized(idmen) == true){
+	    						client.get("http://couplecare.us/backendcouple/JSON/men/"+response+".json", new AsyncHttpResponseHandler() {
+	    				    	    //En caso de que haya una respuesta
+	    							@Override
+	    				    	    public void onSuccess(String response) {
+	    								
+	    								response = response.replace(" ", "");
+	    								
+	    								Men jsonMenW = gmen.fromJson(response, Men.class);
+	    								
+	    								status = "Synchronized with "+jsonMenW.Name.toString();
+	    							}
+	    						}); //End Second Cliente HTTP
+	    					}
+	    					//End Else
+	    				}
+	    			});//End First Client HTTP
+	    	        
 				}
 			});
         }
         else{
         }
 		
-		session.checkLogin();
+		//session.checkLogin();
+		
+		if(!session.isLoggedIn()){
+			Intent i = new Intent(getApplicationContext(), GuideBegin.class);
+			// Closing all the Activities
+
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			
+			
+			// Add new Flag to start new Activity
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			
+			// Staring Login Activity
+			startActivity(i);
+			finish();
+
+		}
 		
 		//ViewPager 
 		vp = (ViewPager) findViewById(R.id.viewpager);
 
 		myAdapter = new vpAdapter();
 		vp.setAdapter(myAdapter);
-		
-		opcionesMenu = new String[] {"Home", "Settings", "Your Couple Pin", "Log out"};
+		opcionesMenu = new String[] {"Home", "Settings", "Your Couple Pin", "Status", "Log out"};
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerList = (ListView) findViewById(R.id.left_drawer);
 
@@ -160,16 +262,45 @@ public class DrawerHomeCal extends ActionBarActivity{
 
 				switch (position) {
 					case 0:
+						 Intent home = new Intent(getApplicationContext(),DrawerHomeCal.class); 
+						 
+							// Closing all the Activities
+							home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+								
+							// Add new Flag to start new Activity
+							home.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+							
+							startActivity(home);
+								
+							finish();
 						break;
 					case 1:
+						 	Intent toDrawerSettings = new Intent(getApplicationContext(),DrawerSettings.class); 
+							startActivity(toDrawerSettings);
+							finish();
 						break;
 					case 2:
-						alert.showAlertDialog(DrawerHomeCal.this, "Your Couple Pin",
-								""+CouplePin, true);
+						showDialogPin(R.layout.promptpinmenu);
 						break;
-					case 3:				
-						finish();
+					case 3:
+						showDialogStatus(R.layout.promptsync);
+						break;
+					case 4:				
 						session.logoutUser();
+						// Closing all the Activities
+						Intent login = new Intent(getApplicationContext(),GuideBegin.class); 
+						 
+						// Closing all the Activities
+						login.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+							
+						// Add new Flag to start new Activity
+						login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						
+						startActivity(login);
+							
+						finish();
+						
+					
 						break;
 				}
 
@@ -199,6 +330,7 @@ public class DrawerHomeCal extends ActionBarActivity{
 			public void onDrawerOpened(View drawerView) {
 				getSupportActionBar().setTitle(UserName);
 				ActivityCompat.invalidateOptionsMenu(DrawerHomeCal.this);
+				guia.setVisibility(View.GONE);
 			}
 		};
 
@@ -209,10 +341,62 @@ public class DrawerHomeCal extends ActionBarActivity{
 		
 	}
 	
+	//SDK de Facebook 
+	@Override
+	protected void onPostResume() {
+		// TODO Auto-generated method stub
+		super.onPostResume();
+		com.facebook.Settings.publishInstallAsync(getApplicationContext(),
+				"230341937134870");
+	}
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
+		MenuItem item = menu.findItem(R.id.action_share);
+		
+		myShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+    	// get user data from session
+        HashMap<String, String> user = session.getUserDetails();
+        
+        // name
+        id = user.get(SessionManager.KEY_PASS);
+        
+		
+		 //Se asigna la URL del JSON alojado en Internet
+		client.get("http://couplecare.us/backendcouple/JSON/women/"+id+".json", new AsyncHttpResponseHandler() {
+    	    //En caso de que haya una respuesta
+			@Override
+    	    public void onSuccess(String response) {
+				//Se usa el GSON pasandole los paremetros recibido a la clase Women en donde tendremos nuestras 
+				//variables en donde los valores serán pasados desde el JSON.
+
+				// May return null if a EasyTracker has not yet been initialized with a
+				  // property ID.
+				  EasyTracker easyTracker = EasyTracker.getInstance(getApplicationContext());
+
+				  // MapBuilder.createEvent().build() returns a Map of event fields and values
+				  // that are set and sent with the hit.
+				  easyTracker.send(MapBuilder
+				      .createEvent("ui_action",     // Event category (required)
+				    		  		"Share_App",  // Event action (required)
+				                   "play_button",   // Event label
+				                   null)            // Event value
+				      .build()
+				  );
+				  
+    	        Women jsonWomen = gwomen.fromJson(response, Women.class); 
+    	        CouplePin = jsonWomen.CouplePin.toString();
+    	    	Intent i = new Intent(Intent.ACTION_SEND);
+    			i.setType("text/plain");    			
+    			i.putExtra(Intent.EXTRA_TEXT, "Hey there, I'm using CoupleCare it's great, download it at http://www.couplecare.us/index.php/download and give it a try :D.");
+    			i.setType(HTTP.PLAIN_TEXT_TYPE); // "text/plain" MIME type
+    			myShareActionProvider.setShareIntent(i);
+			}			
+		});
+	
+		
 		return true;
 	}
 
@@ -225,11 +409,50 @@ public class DrawerHomeCal extends ActionBarActivity{
 		
 		switch(item.getItemId())
 		{
+			case R.id.action_home:
+				Intent home = new Intent(getApplicationContext(),DrawerHomeCal.class); 
+				 
+				// Closing all the Activities
+				home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					
+				// Add new Flag to start new Activity
+				home.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				
+				startActivity(home);
+					
+				finish();
+			break;
 			case R.id.action_settings:
-				Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();;
+				Intent toDrawerSettings = new Intent(getApplicationContext(), DrawerSettings.class);
+				startActivity(toDrawerSettings);
+				finish();
 				break;
-			case R.id.action_search:
-				Toast.makeText(this, "Search", Toast.LENGTH_SHORT).show();
+				
+			case R.id.action_yourcouplepin:
+				showDialogPin(R.layout.promptpinmenu);
+				break;
+			
+			case R.id.action_status:
+				showDialogStatus(R.layout.promptsync);
+				break;
+			
+			case R.id.action_logout:
+				session.logoutUser();
+				// Closing all the Activities
+				Intent login = new Intent(getApplicationContext(),GuideBegin.class); 
+				 
+				// Closing all the Activities
+				login.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					
+				// Add new Flag to start new Activity
+				login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				
+				startActivity(login);
+					
+				finish();
+				break;
+				
+			case R.id.action_share:
 				break;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -242,11 +465,6 @@ public class DrawerHomeCal extends ActionBarActivity{
 	public boolean onPrepareOptionsMenu(Menu menu) {
 
 		boolean menuAbierto = drawerLayout.isDrawerOpen(drawerList);
-		
-		if(menuAbierto)
-			menu.findItem(R.id.action_search).setVisible(false);
-		else
-			menu.findItem(R.id.action_search).setVisible(true);
 		
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -344,16 +562,14 @@ public class DrawerHomeCal extends ActionBarActivity{
 			    	        txtNext.setText(""+msgNext);
 			    	        txtNextLabel.setText("Next Period");
 			    	        
-			    	       
-			    	       
-			    	        
-			    	        
 			    	        Date fechasumar = null;
 			    	        
 			    	        try {
 			    	        	int DurationCycle = Integer.parseInt(json.CDurationCycle.toString());
+			    	        	PeriodDays = Integer.parseInt(json.PeriodDays.toString());
 			    	        	fechasumar = formatoDelTexto.parse(fecha2);
 			    	        	CPeriodStart = formatoDelTexto.parse(json.CPeriodStart.toString());
+			    	        	CPeriodStart2 = formatoDelTexto.parse(json.CPeriodStart.toString());
 			    	        	CPeriodEnd = formatoDelTexto.parse(json.CPeriodEnd.toString());
 			    	        	CFertileStart1 = formatoDelTexto.parse(json.CFertileStart1.toString());
 			    	        	CFertileEnd1 = formatoDelTexto.parse(json.CFertileEnd1.toString());
@@ -362,6 +578,7 @@ public class DrawerHomeCal extends ActionBarActivity{
 			    	        	CFertileEnd2 = formatoDelTexto.parse(json.CFertileEnd2.toString());
 			    	        	CLessFertileStart = formatoDelTexto.parse(json.CLessFertileStart.toString());
 			    	        	CLessFertileEnd = formatoDelTexto.parse(json.CLessFertileEnd.toString());
+			    	        	
 			    	        	String newdate = "";
 			    	        	
 			    	        	Calendar cal = Calendar.getInstance();
@@ -378,7 +595,9 @@ public class DrawerHomeCal extends ActionBarActivity{
 					    	        cal2.add(Calendar.DAY_OF_MONTH, 1);
 					    	        newdate = formatoDelTexto.format(cal2.getTime());
 					    	        
-					    	        if((fechasumar.after(CPeriodStart) && fechasumar.before(CPeriodEnd)) || fechasumar.equals(CPeriodStart) || fechasumar.equals(CPeriodEnd)){
+					    	       
+					    	        
+					    	        if((fechasumar.after(CPeriodStart2) && fechasumar.before(CPeriodEnd)) || fechasumar.equals(CPeriodStart2) || fechasumar.equals(CPeriodEnd)){
 					    	        	txtMsg.setText("Period Day");
 					    	        }
 					    	        else if (fechasumar.after(CFertileStart1) && fechasumar.before(CFertileEnd1) || fechasumar.equals(CFertileStart1) || fechasumar.equals(CFertileEnd1)) {
@@ -409,77 +628,137 @@ public class DrawerHomeCal extends ActionBarActivity{
 
 			case 1:
 				v = inflater.inflate(R.layout.activity_listcalendar, null);
+				id = id.replace(" ", "");
+				if(id.equals("0") || id.equals("")){
+					session.logoutUser();
+				}
+				else{
 				
-				Calendar cal = GregorianCalendar.getInstance();
-				cal.setTime(CPeriodStart);
+					//Se asigna la URL del JSON alojado en Internet
+					client.get("http://couplecare.us/backendcouple/JSON/periods/"+id+".json", new AsyncHttpResponseHandler() {
+			    	    //En caso de que haya una respuesta
+						@Override
+			    	    public void onSuccess(String response) {
+							//Se usa el GSON pasandole los paremetros recibido a la clase numero en donde tendremos nuestras 
+							//variables en donde los valores serán pasados desde el JSON.
+			    	        Period json = g.fromJson(response, Period.class); //del jason que tenemos conviertelo en un arreglo
+			    	        fechaactual();
+			    	        
+			    	        msgNext = json.NPeriodStart.toString();
+			    	        txtFecha.setText(""+fecha2);
+			    	        txtNext.setText(""+msgNext);
+			    	        txtNextLabel.setText("Next Period");
+			  
+			    	        Date fechasumar = null;
+			    	        
+			    	        try {
+			    	        	int DurationCycle = Integer.parseInt(json.CDurationCycle.toString());
+			    	        	PeriodDays = Integer.parseInt(json.PeriodDays.toString());
+			    	        	fechasumar = formatoDelTexto.parse(fecha2);
+			    	        	CPeriodStart = formatoDelTexto.parse(json.CPeriodStart.toString());
+			    	        	CPeriodEnd = formatoDelTexto.parse(json.CPeriodEnd.toString());
+			    	        	CFertileStart1 = formatoDelTexto.parse(json.CFertileStart1.toString());
+			    	        	CFertileEnd1 = formatoDelTexto.parse(json.CFertileEnd1.toString());
+			    	        	CMostFertile = formatoDelTexto.parse(json.CMostFertile.toString());
+			    	        	CFertileStart2 = formatoDelTexto.parse(json.CFertileStart2.toString());
+			    	        	CFertileEnd2 = formatoDelTexto.parse(json.CFertileEnd2.toString());
+			    	        	CLessFertileStart = formatoDelTexto.parse(json.CLessFertileStart.toString());
+			    	        	CLessFertileEnd = formatoDelTexto.parse(json.CLessFertileEnd.toString());
+			    	        	
+			    	        	String newdate = "";
+			    	        	
+			    	        	Calendar cal = Calendar.getInstance();
+				    	        cal.setTime(CPeriodStart);
+				    	        
+				    	        newdate = formatoDelTexto.format(cal.getTime());
+				    	        
+			    	        	int i=0;
+			    
+			    	        		
+			    	        		CPeriodStart = formatoDelTexto.parse(newdate);
+				    	        	Calendar cal2 = Calendar.getInstance();
+					    	        cal2.setTime(CPeriodStart);
+					    	        cal2.add(Calendar.DAY_OF_MONTH, 1);
+					    	        newdate = formatoDelTexto.format(cal2.getTime());
+					    	     
+					    
+									cal.setTime(CPeriodStart);
 
-				
-				 ArrayList<ListEntrance> datos = new ArrayList<ListEntrance>();  
-			        Day dia = new Day(cal,true,"hola",ColorEnum.BLUE);
-			        dia.setCyclePeriod(DurationCycle);
-			        dia.setPeriod(PeriodDays);
-			        dia.calculateFertilesDays(); 
-				 
-			       for(SimpleDate fecha : dia.getSimpleDatesList()) {
-			       
-			        	datos.add(new ListEntrance(R.drawable.button1, fecha.toString(), fecha.getColor().toString()));
-			        	
-			       }
-				
-				list = (ListView) findViewById(R.id.ListView_listado); //Aqui le hablo al listview de la vista que te mostres
-		        list.setAdapter(new List_Adapter(getApplicationContext(), R.layout.activity_listcalendar, datos){ //Aqui utilizo el adapter que se crea para manejar visual
-				
-					public void onEntrada(Object entrada, View view) {
-						
-						
-				        if (entrada != null) {
-				        	
-				            TextView texto_superior_entrada = (TextView) view.findViewById(R.id.textView_superior); 
-				            if (texto_superior_entrada != null){  
-				            	texto_superior_entrada.setText(((ListEntrance) entrada).get_textoEncima());
-				            }
+									
+									 ArrayList<ListEntrance> datos = new ArrayList<ListEntrance>();  
+								        Day dia = new Day(cal,true,"hola",ColorEnum.BLUE);
+								        dia.setCyclePeriod(DurationCycle);
+								        dia.setPeriod(PeriodDays);
+								        dia.calculateFertilesDays(); 
+									 
+								       for(SimpleDate fecha : dia.getSimpleDatesList()) {
+								       
+								        	datos.add(new ListEntrance(R.drawable.caudritotrans, fecha.toString(), fecha.getColor().toString()));
+								        	
+								       }
+									
+									list = (ListView) findViewById(R.id.ListView_listado); //Aqui le hablo al listview de la vista que te mostres
+							        list.setAdapter(new List_Adapter(getApplicationContext(), R.layout.activity_listlayout, datos){ //Aqui utilizo el adapter que se crea para manejar visual
+									
+										public void onEntrada(Object entrada, View view) {
+											
+											
+									        if (entrada != null) {
+									        	
+									            TextView texto_superior_entrada = (TextView) view.findViewById(R.id.textView_superior); 
+									            if (texto_superior_entrada != null){  
+									            	texto_superior_entrada.setText(((ListEntrance) entrada).get_textoEncima());
+									            }
 
-				            TextView texto_inferior_entrada = (TextView) view.findViewById(R.id.textView_inferior); 
-				            if (texto_inferior_entrada != null){
-				 
-				            	texto_inferior_entrada.setText(((ListEntrance) entrada).get_textoDebajo()); 
-				            	
-				            	view.setBackgroundColor(Color.parseColor(((ListEntrance) entrada).get_textoDebajo()));//Cambio el color para que se note? si, pero esperate, deja cambio algo más
-				            	texto_inferior_entrada.setVisibility(View.INVISIBLE);
-				            	String colorstring = ((ListEntrance) entrada).get_textoDebajo();
-				            	if(colorstring.equals("YELLOW")){
-				            		view.setBackgroundColor(Color.rgb(255,206,25)); //250,250,77
-				            	}	else if(colorstring.equals("GREEN")){
-				            		view.setBackgroundColor(Color.rgb(20,204,176));
-				            	}else if(colorstring.equals("CYAN")){
-				            		view.setBackgroundColor(Color.rgb(51,190,242));
-				            	}else if(colorstring.equals("RED")){
-				            		view.setBackgroundColor(Color.rgb(236,0,140));
-				            	}
-				            		
-				            	
-				            	//view.setBackgroundColor(Color.rgb(new Color(0,0,0)));  //Amarillo 224,208,53, 71, 171, 49
-				            }
-				            
-				  
-				            ImageView imagen_entrada = (ImageView) view.findViewById(R.id.imageView_imagen); 
-				            if (imagen_entrada != null)
-				            	imagen_entrada.setImageResource(((ListEntrance) entrada).get_idImagen());
-				        }
-					}
-				});
-		        
+									            TextView texto_inferior_entrada = (TextView) view.findViewById(R.id.textView_inferior); 
+									            if (texto_inferior_entrada != null){
+									 
+									            	texto_inferior_entrada.setText(((ListEntrance) entrada).get_textoDebajo()); 
+									            	
+									            	view.setBackgroundColor(Color.parseColor(((ListEntrance) entrada).get_textoDebajo()));//Cambio el color para que se note? si, pero esperate, deja cambio algo más
+									            	texto_inferior_entrada.setVisibility(View.INVISIBLE);
+									            	String colorstring = ((ListEntrance) entrada).get_textoDebajo();
+									            	if(colorstring.equals("YELLOW")){
+									            		view.setBackgroundColor(Color.rgb(255,206,25)); //250,250,77
+									            	}	else if(colorstring.equals("GREEN")){
+									            		view.setBackgroundColor(Color.rgb(20,204,176));
+									            	}else if(colorstring.equals("CYAN")){
+									            		view.setBackgroundColor(Color.rgb(51,190,242));
+									            	}else if(colorstring.equals("RED")){
+									            		view.setBackgroundColor(Color.rgb(236,0,140));
+									            	}
+									            		
+									            	
+									            	//view.setBackgroundColor(Color.rgb(new Color(0,0,0)));  //Amarillo 224,208,53, 71, 171, 49
+									            }
+									            
+									  
+									            ImageView imagen_entrada = (ImageView) view.findViewById(R.id.imageView_imagen); 
+									            if (imagen_entrada != null)
+									            	imagen_entrada.setImageResource(((ListEntrance) entrada).get_idImagen());
+									        }
+										}
+									});
+							        
 
-		        list.setOnItemClickListener(new OnItemClickListener() { 
-					@Override
-					public void onItemClick(AdapterView<?> pariente, View view, int posicion, long id) {
-						ListEntrance elegido = (ListEntrance) pariente.getItemAtPosition(posicion); 
-
-		                CharSequence texto = "Seleccionado: " + elegido.get_textoDebajo();
-		                Toast toast = Toast.makeText(getApplicationContext(), texto, Toast.LENGTH_LONG);
-		                toast.show();
-					}
-		        });
+							        list.setOnItemClickListener(new OnItemClickListener() { 
+										@Override
+										public void onItemClick(AdapterView<?> pariente, View view, int posicion, long id) {
+											ListEntrance elegido = (ListEntrance) pariente.getItemAtPosition(posicion); 
+										}
+							        });
+					    	       
+					    	     
+									i++;
+			    	        	
+			    	        } catch (ParseException ex) {
+	
+			    	        ex.printStackTrace();
+	
+			    	        }
+			    	    }
+					});
+				}
 				break;
 
 			}
@@ -487,6 +766,9 @@ public class DrawerHomeCal extends ActionBarActivity{
 			((ViewPager) container).addView(v, 0);
 			return v;
 		}
+		
+		
+
 
 		@Override
 		public Parcelable saveState() {
@@ -499,5 +781,238 @@ public class DrawerHomeCal extends ActionBarActivity{
 			// TODO Auto-generated method stub
 		}
 	}
+	
+	
+	public String clientpin(String idw){
+		 //Se asigna la URL del JSON alojado en Internet
+		client.get("http://couplecare.us/backendcouple/JSON/women/"+idw+".json", new AsyncHttpResponseHandler() {
+    	    //En caso de que haya una respuesta
+			@Override
+    	    public void onSuccess(String response) {
+				//Se usa el GSON pasandole los paremetros recibido a la clase Women en donde tendremos nuestras 
+				//variables en donde los valores serán pasados desde el JSON.
+    	        Women jsonWomen = gwomen.fromJson(response, Women.class); 
+    	        CouplePin = jsonWomen.CouplePin.toString();
+			}
+			
+		});
+	
+		return CouplePin;
+		
+	}
+	
+	
+	public void showDialogPin(int la) {
+		LayoutInflater li = LayoutInflater.from(DrawerHomeCal.this);
+		final View promptsView = li.inflate(la, null);
 
+		final TextView txtpin = (TextView)promptsView.findViewById(R.id.txtcpin);
+		
+		HashMap<String, String> user = session.getUserDetails();
+        
+        // name
+        id = user.get(SessionManager.KEY_PASS);
+
+		 //Se asigna la URL del JSON alojado en Internet
+		client.get("http://couplecare.us/backendcouple/JSON/women/"+id+".json", new AsyncHttpResponseHandler() {
+    	    //En caso de que haya una respuesta
+			@Override
+    	    public void onSuccess(String response) {
+				//Se usa el GSON pasandole los paremetros recibido a la clase Women en donde tendremos nuestras 
+				//variables en donde los valores serán pasados desde el JSON.
+    	        Women jsonWomen = gwomen.fromJson(response, Women.class); 
+    	        CouplePin = jsonWomen.CouplePin.toString();
+    	    
+    			txtpin.setText(CouplePin);
+			}
+		
+			
+		});
+		
+
+		AlertDialog.Builder alerDialogBuilder = new AlertDialog.Builder(
+				DrawerHomeCal.this);
+		
+		
+		alerDialogBuilder.setView(promptsView);
+
+		alerDialogBuilder
+				.setCancelable(false)
+				.setPositiveButton("Send", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int idw) {
+						
+						// Create the text message with a string
+						Intent sendIntent = new Intent();
+						/*
+						// May return null if a EasyTracker has not yet been initialized with a
+						  // property ID.
+						  EasyTracker easyTracker = EasyTracker.getInstance(getApplicationContext());
+
+						  // MapBuilder.createEvent().build() returns a Map of event fields and values
+						  // that are set and sent with the hit.
+						  easyTracker.send(MapBuilder
+						      .createEvent("ui_action",     // Event category (required)
+						    		  		"Share_PIN",  // Event action (required)
+						                   "play_button",   // Event label
+						                   null)            // Event value
+						      .build()
+						  );
+						*/
+						sendIntent.setAction(Intent.ACTION_SEND);
+						sendIntent.putExtra(Intent.EXTRA_TEXT, "Hey there, I'm using CoupleCare my PIN is: ("  +txtpin.getText().toString() + ") download it at https://play.google.com/store/apps/details?id=activities.CCM and synch with me :D.");
+						sendIntent.setType(HTTP.PLAIN_TEXT_TYPE); // "text/plain" MIME type
+						
+						// Always use string resources for UI text.
+						// This says something like "Share this photo with"
+						String title = getResources().getString(R.string.chooser_title);
+						// Create intent to show chooser
+						Intent chooser = Intent.createChooser(sendIntent, title);
+
+						// Verify the intent will resolve to at least one activity
+						if (sendIntent.resolveActivity(getPackageManager()) != null) {
+						    startActivity(sendIntent);
+						}
+						
+
+					}
+				}).setNegativeButton("Close",
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+								dialog.cancel();
+
+							}
+						});
+
+		AlertDialog alertDialog = alerDialogBuilder.create();
+
+		alertDialog.show();
+
+	}
+	
+	public void showDialogStatus(int la) {
+		LayoutInflater li = LayoutInflater.from(DrawerHomeCal.this);
+		final View promptsView = li.inflate(la, null);
+
+		final TextView txtpin = (TextView)promptsView.findViewById(R.id.txtcpin);
+		
+		HashMap<String, String> user = session.getUserDetails();
+        
+        // name
+        id = user.get(SessionManager.KEY_PASS);
+        
+        client.get("http://couplecare.us/backendcouple/JSON/women/"+id+".json", new AsyncHttpResponseHandler() {
+    	    //En caso de que haya una respuesta
+			@Override
+    	    public void onSuccess(String response) {
+				//Se usa el GSON pasandole los paremetros recibido a la clase Women en donde tendremos nuestras 
+				//variables en donde los valores serán pasados desde el JSON.
+    	        Women jsonWomen = gwomen.fromJson(response, Women.class); 
+    	        CouplePin = jsonWomen.CouplePin.toString();
+    	        
+    	        client.get("http://couplecare.us/backendcouple/searchmenbypin.php?pin="+CouplePin, new AsyncHttpResponseHandler() {
+    	    	    //En caso de que haya una respuesta
+    				@Override
+    	    	    public void onSuccess(String response) {
+    					
+    					response = response.replace(" ", "");
+    					if(isSynchronized(idmen) == false){
+    						txtpin.setText("Not Synchronized");
+    					}
+    					else{
+    						client.get("http://couplecare.us/backendcouple/JSON/men/"+response+".json", new AsyncHttpResponseHandler() {
+    				    	    //En caso de que haya una respuesta
+    							@Override
+    				    	    public void onSuccess(String response) {
+    								
+    								Men jsonMenW = gmen.fromJson(response, Men.class); 
+    								txtpin.setText(Html.fromHtml("Synchronized with <br><b>"+jsonMenW.Name.toString()+"</b>"));
+    								
+    							}
+    						}); //End Second Cliente HTTP
+    					}
+    					//End Else
+    				}
+    			});//End First Client HTTP
+			}
+		});
+
+		AlertDialog.Builder alerDialogBuilder = new AlertDialog.Builder(
+				DrawerHomeCal.this);
+		
+		
+		alerDialogBuilder.setView(promptsView);
+
+		alerDialogBuilder
+				.setCancelable(false)
+				.setNegativeButton("Close",
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+								dialog.cancel();
+
+							}
+						});
+
+		AlertDialog alertDialog = alerDialogBuilder.create();
+
+		alertDialog.show();
+
+	}
+	
+	//Función booleana para detectar el estado de la conexión del dispositivo.
+    public boolean isOnline() {
+    	ConnectivityManager cm =
+    			(ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    	
+    	//Recibir información de la red conectada.
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+    
+	@Override
+	  public void onStart() {
+	    super.onStart();
+	    EasyTracker.getInstance(this).activityStart(this); // Add this method.
+	    
+	  }
+
+	 @Override
+	  public void onStop() {
+	    super.onStop();
+	    EasyTracker.getInstance(this).activityStop(this); // Add this method.
+	  }
+	
+	 
+	 public boolean isSynchronized(String id){
+		 if(id.equals("0")){
+			 status = "Not synchronized";
+			 return false;
+		 }
+		 return true;
+	 }
+	 
+	 public void AnalyticsBoton(String action){
+		// May return null if a EasyTracker has not yet been initialized with a
+		  // property ID.
+		  EasyTracker easyTracker = EasyTracker.getInstance(getApplicationContext());
+
+		  // MapBuilder.createEvent().build() returns a Map of event fields and values
+		  // that are set and sent with the hit.
+		  easyTracker.send(MapBuilder
+		      .createEvent("ui_action",     // Event category (required)
+		                   action,  // Event action (required)
+		                   "play_button",   // Event label
+		                   null)            // Event value
+		      .build()
+		  );
+	 }
+	 
 }

@@ -206,9 +206,6 @@ public class MainActivity extends ActionBarActivity {
 			case R.id.action_settings:
 				Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();;
 				break;
-			case R.id.action_search:
-				Toast.makeText(this, "Search", Toast.LENGTH_SHORT).show();
-				break;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -220,11 +217,6 @@ public class MainActivity extends ActionBarActivity {
 	public boolean onPrepareOptionsMenu(Menu menu) {
 
 		boolean menuAbierto = drawerLayout.isDrawerOpen(drawerList);
-		
-		if(menuAbierto)
-			menu.findItem(R.id.action_search).setVisible(false);
-		else
-			menu.findItem(R.id.action_search).setVisible(true);
 		
 		return super.onPrepareOptionsMenu(menu);
 	}

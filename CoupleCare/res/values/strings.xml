@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">CoupleCare</string>
+    <string name="app_name">"CoupleCare"</string>
+    <string name="app_name_activity">""</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
 	<string name="action_search">Buscar</string>
+	<string name="action_share">Share PIN</string>
     <string name="fragment1">Fragment 1</string>
     <string name="fragment2">Fragment 2</string>
     <string name="fragment3">Fragment 3</string>
@@ -16,6 +18,7 @@
     <string name="title_activity_guia_login">Guia_login</string>
     <string name="textEmail">Email</string>
     <string name="textPass">Password</string>
+    <string name="chooser_title">Please choose app</string>
     
     <!-- String for spinner -->
     <string-array name="cycle_days">

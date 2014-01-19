@@ -1,6 +1,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" 
     xmlns:sgoliver="http://schemas.android.com/apk/res-auto" >
 
+    
+    
+    <item
+        android:id="@+id/action_home"
+        android:orderInCategory="100"
+        sgoliver:showAsAction="never"
+        android:title="Home"/>
+    
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
@@ -8,9 +16,29 @@
         android:title="@string/action_settings"/>
     
     <item
-        android:id="@+id/action_search"
+        android:id="@+id/action_yourcouplepin"
         android:orderInCategory="100"
-        sgoliver:showAsAction="ifRoom"
-        android:icon="@drawable/ic_action_search"
-        android:title="@string/action_search"/>
+        sgoliver:showAsAction="never"
+        android:title="Your Couple PIN"/>
+    
+    <item
+        android:id="@+id/action_status"
+        android:orderInCategory="100"
+        sgoliver:showAsAction="never"
+        android:title="Status"/>
+    
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="100"
+        sgoliver:showAsAction="never"
+        android:title="Log out"/>
+    
+    <item
+        android:id="@+id/action_share"
+        android:orderInCategory="100"
+        sgoliver:showAsAction="always"
+        android:icon="@drawable/ic_action_share"
+        android:title="@string/action_share"
+        sgoliver:actionProviderClass= "android.support.v7.widget.ShareActionProvider"/>
+    
 </menu>

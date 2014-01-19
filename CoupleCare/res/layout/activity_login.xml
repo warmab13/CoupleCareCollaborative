@@ -12,7 +12,7 @@
         <EditText
             android:id="@+id/etemail"
             android:layout_width="wrap_content"
-            android:layout_height="50px"
+            android:layout_height="50dp"
             android:layout_below="@+id/textView"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="29dp"
@@ -60,7 +60,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/fecha"
+            android:id="@+id/forgotpass"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -73,7 +73,7 @@
         <EditText
             android:id="@+id/etpass"
             android:layout_width="wrap_content"
-            android:layout_height="50px"
+            android:layout_height="50dp"
             android:layout_alignLeft="@+id/etemail"
             android:layout_alignRight="@+id/etemail"
             android:layout_below="@+id/etemail"
